@@ -14,6 +14,12 @@ set_package_properties(GammaRay PROPERTIES
   PURPOSE "Needed to build custom GammaRay plug-ins."
 )
 
+# TODO: Work-around for CI where Qt5Ivi is installed into separate prefix
+# Qt5IviCore pulls in Qt5Qml, but find_package inside there only checks $PWD/../; it does not honor CMAKE_PREFIX_PATH
+# Pull in Qt5Qml manually, to honor CMAKE_PREFIX_PATH
+# I consider this a bug in the generated CMake config files -- we should not set NO_DEFAULT_PATH there
+find_package(Qt5Qml REQUIRED)
+
 find_package(Qt5IviCore REQUIRED)
 find_package(Qt5IviVehicleFunctions REQUIRED)
 
