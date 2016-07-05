@@ -63,8 +63,3 @@ void QtIviSupport::registerMetaTypes()
     MO_ADD_PROPERTY_RO(QIviZonedFeatureInterface, QStringList, availableZones);
 }
 
-
-QString QtIviSupportFactory::name() const
-{
-    return tr("Qt IVI");
-}

@@ -55,8 +55,6 @@ public:
     explicit QtIviSupportFactory(QObject *parent = 0) : QObject(parent)
     {
     }
-
-    QString name() const override;
 };
 
 }
