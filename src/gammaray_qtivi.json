@@ -2,5 +2,5 @@
     "id": "gammaray_qtivi",
     "name": "Qt IVI",
     "types": ["QIviServiceObject", "QIviProperty"],
-    "hidden": true
+    "hidden": false
 }

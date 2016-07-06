@@ -1,3 +1,9 @@
 # probe plugin
-gammaray_add_plugin(gammaray_qtivi JSON gammaray_qtivi.json SOURCES qtivisupport.cpp)
+gammaray_add_plugin(gammaray_qtivi JSON gammaray_qtivi.json SOURCES qtivisupport.cpp qtivipropertymodel.cpp)
 target_link_libraries(gammaray_qtivi gammaray_core Qt5::IviCore Qt5::IviVehicleFunctions)
+
+# ui part
+if(GAMMARAY_BUILD_UI)
+    gammaray_add_plugin(gammaray_qtivi_ui JSON gammaray_qtivi.json SOURCES qtivisupportwidget.cpp)
+    target_link_libraries(gammaray_qtivi_ui ${QT_QTGUI_LIBRARIES} gammaray_ui)
+endif()
