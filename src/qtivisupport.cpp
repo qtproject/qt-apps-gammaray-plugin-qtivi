@@ -32,6 +32,7 @@
 #include <core/metaobject.h>
 #include <core/metaobjectrepository.h>
 #include <core/objecttypefilterproxymodel.h>
+#include <core/probe.h>
 
 #include <QIviAbstractFeature>
 #include <QIviServiceObject>
@@ -41,34 +42,8 @@
 #include <QDebug>
 
 using namespace GammaRay;
-using PropertyFilterModel = ObjectTypeFilterProxyModel<QIviProperty>;
 
-QtIviSupport::QtIviSupport(ProbeInterface* probe, QObject* parent) :
-    QObject(parent)
-{
-    Q_UNUSED(probe);
-    registerMetaTypes();
-
-    auto const filterModel = new PropertyFilterModel(this);
-    filterModel->setDynamicSortFilter(true);
-    filterModel->setSourceModel(probe->objectListModel());
-
-    auto propertyModel = new QtIVIPropertyModel(this);
-    propertyModel->setSourceModel(filterModel);
-
-    connect(propertyModel, &QtIVIPropertyModel::dataChanged, [propertyModel](const QModelIndex& tl, const QModelIndex& br)
-    {
-        qDebug() << "index tl: " << tl;
-        qDebug() << "index br: " << br;
-        qDebug() << "got data changed event";
-        qDebug() << propertyModel->data(tl);
-    });
-
-    probe->registerModel(QStringLiteral("com.kdab.GammaRay.PropertyModel"), propertyModel);
-    //m_selectionModel = ObjectBroker::selectionModel(filterModel);
-}
-
-void QtIviSupport::registerMetaTypes()
+static void registerMetaTypes()
 {
     qRegisterMetaType<QIviServiceObject*>();
 
@@ -83,4 +58,24 @@ void QtIviSupport::registerMetaTypes()
 
     MO_ADD_METAOBJECT1(QIviZonedFeatureInterface, QObject);
     MO_ADD_PROPERTY_RO(QIviZonedFeatureInterface, QStringList, availableZones);
+}
+
+QtIviSupport::QtIviSupport(ProbeInterface* probe, QObject* parent)
+   : QObject(parent)
+{
+    Q_UNUSED(probe);
+    registerMetaTypes();
+
+    auto propertyModel = new QtIviPropertyModel(Probe::instance());
+
+    connect(propertyModel, &QtIviPropertyModel::dataChanged,
+        [propertyModel](const QModelIndex& tl, const QModelIndex& br)
+        {
+            qDebug() << "data changed from top left:" << tl << "to bottom right:" << br
+                     << "with new data at top left" << propertyModel->data(tl);
+        }
+    );
+
+    probe->registerModel(QStringLiteral("com.kdab.GammaRay.PropertyModel"), propertyModel);
+    //m_selectionModel = ObjectBroker::selectionModel(filterModel);
 }

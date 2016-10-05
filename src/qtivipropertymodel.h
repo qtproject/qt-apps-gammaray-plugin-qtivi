@@ -29,44 +29,73 @@
 #ifndef GAMMARAY_QTIVI_QTIVIPROPERTYMODEL_H
 #define GAMMARAY_QTIVI_QTIVIPROPERTYMODEL_H
 
-#include <QAbstractTableModel>
-#include <QVector>
+#include "qtivipropertyoverrider.h"
 
-class QtIVIPropertyModel : public QAbstractTableModel
+#include <QAbstractItemModel>
+#include <QHash>
+#include <QString>
+
+#include <vector>
+
+class QIviProperty;
+
+namespace GammaRay {
+
+class Probe;
+
+class QtIviPropertyModel : public QAbstractItemModel
 {
-  Q_OBJECT
-
+    Q_OBJECT
 public:
-    enum Column {
-        AddressColumn,
-        BackendValueColumn,
-        OverrideValueColumn,
-        OverrideColumn,
-        /** Mark column count */
-        ColumnCount
-    };
+    explicit QtIviPropertyModel(Probe *probe);
 
-    explicit QtIVIPropertyModel(QObject *parent = 0);
-    ~QtIVIPropertyModel();
-
-    int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    QVariant headerData(int section, Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
-
-    void setSourceModel(QAbstractItemModel *sourceModel);
+    bool setData(const QModelIndex &index, const QVariant &value,
+                 int role = Qt::EditRole) Q_DECL_OVERRIDE;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    QModelIndex parent(const QModelIndex &child) const Q_DECL_OVERRIDE;
+    QModelIndex index(int row, int column,
+                      const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
 private slots:
-    void slotBeginRemoveRows(const QModelIndex &parent, int start, int end);
-    void slotEndRemoveRows();
-    void slotBeginInsertRows(const QModelIndex &parent, int start, int end);
-    void slotEndInsertRows();
-    void slotBeginReset();
-    void slotEndReset();
+    void objectAdded(QObject *obj);
+    void objectRemoved(QObject *obj);
+    void objectReparented(QObject *obj);
+    void propertyValueChanged(const QVariant &value);
+
+public:
+    struct IviProperty // public so we can have a free function in the .cpp file dealing with it
+    {
+        explicit IviProperty(QIviProperty *value, const QMetaProperty &metaProperty);
+        IviProperty();
+        QString name;
+        QIviProperty *value;
+        QtIviPropertyOverrider overrider;
+    };
 
 private:
-    QVector<QPair<int, int>> m_pending_insertions;
-    QAbstractItemModel *m_sourceModel;
+    int indexOfPropertyCarrier(const QObject *carrier) const;
+
+    struct IviPropertyCarrier
+    {
+        QObject *carrier;
+        std::vector<IviProperty> iviProperties;
+        int indexOfProperty(const QIviProperty *property) const;
+    };
+
+    /// property tree model
+    // "property carriers" are objects that have QIviProperty (static Qt meta) properties
+
+    std::vector<IviPropertyCarrier> m_propertyCarriers;
+    // m_seenObjects is not strictly needed currently but it helps debugging and will become more useful
+    // when some of the current simplifying assumptions about object relationships must be discarded.
+    QHash<QObject *, bool> m_seenObjects; // bool meaning: whether it has properties of type QtIVIProperty *
 };
+
+}
 
 #endif

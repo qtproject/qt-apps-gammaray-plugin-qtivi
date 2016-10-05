@@ -23,11 +23,13 @@ find_package(Qt5Qml REQUIRED)
 find_package(Qt5IviCore REQUIRED)
 find_package(Qt5IviVehicleFunctions REQUIRED)
 
-# more aggressive linker flags (for testing the GammaRay-provided development files for completeness)
 if(CMAKE_SYSTEM_NAME MATCHES Linux OR CMAKE_SYSTEM_NAME STREQUAL GNU)
   if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # more aggressive linker flags (for testing the GammaRay-provided development files for completeness)
     set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--fatal-warnings -Wl,--no-undefined -lc ${CMAKE_SHARED_LINKER_FLAGS}")
     set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--fatal-warnings -Wl,--no-undefined -lc ${CMAKE_MODULE_LINKER_FLAGS}")
+    # always a good idea
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
   endif()
 endif()
 

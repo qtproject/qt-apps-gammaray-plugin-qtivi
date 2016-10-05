@@ -26,35 +26,43 @@
 **
 ****************************************************************************/
 
-#include "qtivisupportwidget.h"
-#include "qtivipropertymodel.h"
+#ifndef GAMMARAY_QTIVIPROPERTYOVERRIDER_H
+#define GAMMARAY_QTIVIPROPERTYOVERRIDER_H
 
-#include <common/objectbroker.h>
-#include <common/endpoint.h>
-#include <ui/propertyeditordelegate.h>
+#include <QObject>
+#include <QVariant>
 
-#include <QTreeView>
-#include <QHBoxLayout>
-#include <QHeaderView>
-#include <QLineEdit>
+class QIviProperty;
+class OverrideValueGetter;
+class OverrideValueSetter;
 
-using namespace GammaRay;
-
-QtIVIWidget::QtIVIWidget(QWidget *parent)
-    : QWidget(parent)
+class QtIviPropertyOverrider
 {
-    setObjectName("QtIVIWidget");
-    QAbstractItemModel *propertyModel
-        = ObjectBroker::model(QStringLiteral("com.kdab.GammaRay.PropertyModel"));
+public:
+    QtIviPropertyOverrider(QIviProperty *property, bool userWritable = false);
+    QtIviPropertyOverrider();
+    QtIviPropertyOverrider(const QtIviPropertyOverrider &other) = delete;
+    QtIviPropertyOverrider &operator=(const QtIviPropertyOverrider &other) = delete;
+    QtIviPropertyOverrider(QtIviPropertyOverrider &&other);
+    QtIviPropertyOverrider &operator=(QtIviPropertyOverrider &&other);
+    ~QtIviPropertyOverrider();
 
-    QVBoxLayout *vbox = new QVBoxLayout(this);
+    void setOverrideValue(const QVariant &value);
+    void disableOverride();
+    bool overrideEnabled() const;
 
-    auto objectTreeView = new QTreeView(this);
-    objectTreeView->header()->setObjectName("objectTreeViewHeader");
-    vbox->addWidget(objectTreeView);
+    QVariant value() const;
 
-    QItemSelectionModel *selectionModel = ObjectBroker::selectionModel(propertyModel);
-    Q_UNUSED(selectionModel); // it *is* used just by having a QAIM as parent
-    objectTreeView->setModel(propertyModel);
-    objectTreeView->setItemDelegateForColumn(1, new PropertyEditorDelegate(this));
-}
+private:
+    friend class OverrideValueSetter;
+    friend class OverrideValueGetter;
+
+    QIviProperty *m_prop;
+    QVariant m_overrideValue;
+    bool m_overrideEnabled : 1;
+    bool m_userWritable : 1;
+    QtPrivate::QSlotObjectBase *m_originalValueSetter;
+    QtPrivate::QSlotObjectBase *m_originalValueGetter;
+};
+
+#endif // GAMMARAY_QTIVIPROPERTYOVERRIDER_H

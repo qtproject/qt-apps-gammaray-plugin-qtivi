@@ -40,9 +40,6 @@ class QtIviSupport : public QObject
     Q_OBJECT
 public:
     explicit QtIviSupport(ProbeInterface *probe, QObject *parent = 0);
-
-private:
-    void registerMetaTypes();
 };
 
 class QtIviSupportFactory : public QObject, public StandardToolFactory<QIviProperty, QtIviSupport>
