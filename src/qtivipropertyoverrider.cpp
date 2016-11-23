@@ -31,7 +31,7 @@
 #include <QObject>
 
 #include <QIviProperty>
-#include <1.0.0/QtIviCore/private/qiviproperty_p.h>
+#include <private/qiviproperty_p.h>
 
 /*
  For the purpose of overriding, there is a big difference between read-only and read-write properties.
